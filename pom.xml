@@ -20,13 +20,20 @@
     <properties>
         <java.version>26</java.version>
         <flyway.version>10.20.1</flyway.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.42</lombok.version>
+        <bouncycastle.version>1.82</bouncycastle.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- SLF4J API + Logback 默认实现（spring-boot-starter-web 已传递引入，此处显式声明以便定制配置） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
         </dependency>
 
         <dependency>
@@ -56,15 +63,23 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- Argon2id 密码编码的运行时依赖：Spring Security 的 Argon2PasswordEncoder 依赖 BouncyCastle -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>${bouncycastle.version}</version>
+        </dependency>
+
+        <!-- Flyway：用 Spring Boot 管理的 starter，触发 FlywayAutoConfiguration 自动建表 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
 
+        <!-- Flyway MySQL 模块（Spring Boot 4 分离了数据库方言） -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
-            <version>${flyway.version}</version>
         </dependency>
 
         <dependency>
@@ -107,6 +122,20 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.xt.interview.XtInterviewApplication</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>${java.version}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
         </plugins>

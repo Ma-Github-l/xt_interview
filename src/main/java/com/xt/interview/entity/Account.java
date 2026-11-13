@@ -3,6 +3,12 @@ package com.xt.interview.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * 账号实体（sys_account 表）。
+ * 软删除：deleted=1 时保留 username 原值，前端按 deleted 筛选展示，无感知。
+ * 密码字段统一存 Argon2id 哈希（$argon2id$ 前缀）；存量 MD5 登录时自动升级。
+ * 权限模型：roleLevel（1=普通用户，2=管理员，3=超级管理员）+ isSuper（0/1）双重判断。
+ */
 @Entity
 @Table(name = "sys_account")
 public class Account {
@@ -16,6 +22,9 @@ public class Account {
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
+
+    @Column(name = "avatar", length = 200)
+    private String avatar;
 
     @Column(name = "gender", length = 10)
     private String gender;
@@ -34,6 +43,10 @@ public class Account {
 
     @Column(name = "is_super")
     private Integer isSuper;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
 
     @Column(name = "deleted")
     private Integer deleted;
@@ -68,6 +81,9 @@ public class Account {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
+
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
 
@@ -85,6 +101,9 @@ public class Account {
 
     public Integer getIsSuper() { return isSuper; }
     public void setIsSuper(Integer isSuper) { this.isSuper = isSuper; }
+
+    public Department getDepartment() { return department; }
+    public void setDepartment(Department department) { this.department = department; }
 
     public Integer getDeleted() { return deleted; }
     public void setDeleted(Integer deleted) { this.deleted = deleted; }

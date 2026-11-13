@@ -13,6 +13,11 @@
           <el-icon><User /></el-icon>
           <span>用户管理</span>
         </el-menu-item>
+        <!-- 部门管理仅超级管理员可见 -->
+        <el-menu-item v-if="canSeeDepartment" index="/departments">
+          <el-icon><OfficeBuilding /></el-icon>
+          <span>部门管理</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -22,7 +27,16 @@
           <span class="page-title">{{ pageTitle }}</span>
         </div>
         <div class="header-right">
-          <span class="user-info">欢迎，<strong>{{ userName }}</strong></span>
+          <el-tooltip :content="avatarTooltip" placement="bottom">
+            <el-avatar
+              :size="36"
+              :src="avatarSrc"
+              @click="handleAvatarClick"
+              class="user-avatar"
+            >
+              <span class="avatar-fallback">{{ avatarFallbackText }}</span>
+            </el-avatar>
+          </el-tooltip>
           <el-button type="danger" plain size="small" @click="handleLogout">
             退出登录
           </el-button>
@@ -37,12 +51,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { authApi } from '@/api'
+import { authApi, avatarApi } from '@/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User } from '@element-plus/icons-vue'
+import { User, OfficeBuilding } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -50,16 +64,41 @@ const route = useRoute()
 
 const activeMenu = ref('/users')
 
-const userName = computed(() => {
-  if (userStore.userInfo?.name) {
-    return userStore.userInfo.name
-  }
-  return userStore.userInfo?.username || '管理员'
+// 部门管理菜单可见性：仅超级管理员（roleLevel=3 且 isSuper=1）
+const canSeeDepartment = computed(() => {
+  const u = userStore.userInfo
+  if (!u) return false
+  const isSuper = u.isSuper === 1 || (u.roleLevel ?? 0) >= 3
+  return isSuper
+})
+
+// 头像文件名变化时刷新 bustCacheKey，computed 重新求值后 src 带新时间戳，浏览器拉取最新图
+const bustCacheKey = ref(0)
+watch(
+  () => userStore.userInfo?.avatar,
+  () => { bustCacheKey.value++ }
+)
+
+const avatarSrc = computed(() => {
+  const avatar = userStore.userInfo?.avatar
+  const url = avatarApi.url(avatar)
+  return url + '?_t=' + bustCacheKey.value
+})
+
+const avatarTooltip = computed(() => {
+  const name = userStore.userInfo?.name || userStore.userInfo?.username || '未知用户'
+  return `${name}，点击进入用户管理`
+})
+
+const avatarFallbackText = computed(() => {
+  const name = userStore.userInfo?.name || userStore.userInfo?.username || '?'
+  return name.charAt(0).toUpperCase()
 })
 
 const pageTitle = computed(() => {
   const titleMap: Record<string, string> = {
-    '/users': '用户管理'
+    '/users': '用户管理',
+    '/departments': '部门管理'
   }
   return titleMap[route.path] || '首页'
 })
@@ -68,9 +107,14 @@ function handleMenuSelect(index: string) {
   router.push(index)
 }
 
+function handleAvatarClick() {
+  router.push('/users')
+}
+
 onMounted(() => {
   userStore.loadFromStorage()
   if (!userStore.isLoggedIn) {
+    // 未登录直接进登录页，不弹任何提示，避免与 401 拦截器的弹窗重复
     router.push('/login')
   }
   activeMenu.value = route.path
@@ -164,9 +208,27 @@ async function handleLogout() {
   gap: 16px;
 }
 
-.user-info {
+.user-avatar {
+  cursor: pointer;
+  border: 2px solid #e4e7ed;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.08);
+  border-color: #409eff;
+}
+
+.avatar-fallback {
   font-size: 14px;
-  color: #606266;
+  font-weight: 600;
+  color: #fff;
+  background: #409eff;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .main-content {
