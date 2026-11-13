@@ -1,6 +1,5 @@
 package com.xt.interview;
 
-import com.xt.interview.dto.AccountDTO;
 import com.xt.interview.dto.DepartmentDTO;
 import com.xt.interview.entity.Department;
 import com.xt.interview.repository.DepartmentRepository;
@@ -12,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

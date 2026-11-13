@@ -46,7 +46,7 @@ public class AvatarController {
     public ResponseEntity<Map<String, String>> upload(
             @RequestAttribute("userId") Long userId,
             @RequestParam("file") MultipartFile file) throws IOException {
-        return doUpload(userId, userId, file);
+        return doUpload(userId, file);
     }
 
     /**
@@ -64,11 +64,15 @@ public class AvatarController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("avatar", "", "error", "无权限上传该用户的头像"));
         }
-        // 当前用户为上传人，目标用户头像被更新
-        return doUpload(currentUserId, targetUserId, file);
+        return doUpload(targetUserId, file);
     }
 
-    private ResponseEntity<Map<String, String>> doUpload(Long operatorUserId, Long targetUserId, MultipartFile file) throws IOException {
+    /**
+     * 公共上传逻辑：
+     *   targetUserId — 头像归属的用户（自己上传时 = 当前登录用户，管理员为他人上传时 = 目标用户）
+     *   file       — 上传的图片
+     */
+    private ResponseEntity<Map<String, String>> doUpload(Long targetUserId, MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("avatar", "", "error", "文件为空"));
         }
@@ -90,6 +94,7 @@ public class AvatarController {
         accountRepository.save(account);
         return ResponseEntity.ok(Map.of("avatar", fileName));
     }
+
     /**
      * 读取头像图片。
      * GET /api/avatars/{fileName}

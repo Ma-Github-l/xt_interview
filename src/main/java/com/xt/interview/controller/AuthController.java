@@ -130,17 +130,7 @@ public class AuthController {
             response.put("success", true);
             response.put("message", "登录成功");
             response.put("accessToken", accessToken);
-
-            Map<String, Object> user = new HashMap<>();
-            user.put("id", account.getId());
-            user.put("username", account.getUsername());
-            user.put("name", account.getName());
-            user.put("gender", account.getGender());
-            user.put("phone", account.getPhone());
-            user.put("roleLevel", account.getRoleLevel());
-            user.put("status", account.getStatus());
-            user.put("avatar", account.getAvatar());
-            response.put("user", user);
+            response.put("user", buildUserMap(account));
 
             return ResponseEntity.ok(response);
 
@@ -221,7 +211,6 @@ public class AuthController {
             // 3. 轮换：签发新 refresh token（带 JTI），记录旧 JTI + 时间戳用于宽限期判定
             String newAccessToken = jwtUtil.generateAccessToken(account.getId(), account.getUsername(), account.getRoleLevel());
             String newRefreshToken = jwtUtil.generateRefreshTokenWithRotation(account.getId(), account.getUsername());
-            String newJti = jwtUtil.getTokenJti(newRefreshToken);
             rotationRecords.put(userId, new RotationRecord(System.currentTimeMillis(), tokenJti));
 
             // 新 refresh token 通过 HttpOnly Cookie 下发
@@ -230,17 +219,7 @@ public class AuthController {
             response.put("success", true);
             response.put("message", "刷新成功");
             response.put("accessToken", newAccessToken);
-
-            Map<String, Object> user = new HashMap<>();
-            user.put("id", account.getId());
-            user.put("username", account.getUsername());
-            user.put("name", account.getName());
-            user.put("gender", account.getGender());
-            user.put("phone", account.getPhone());
-            user.put("roleLevel", account.getRoleLevel());
-            user.put("status", account.getStatus());
-            user.put("avatar", account.getAvatar());
-            response.put("user", user);
+            response.put("user", buildUserMap(account));
 
             return ResponseEntity.ok(response);
 
@@ -334,5 +313,19 @@ public class AuthController {
     private void clearRefreshCookie(HttpServletResponse resp) {
         resp.addHeader("Set-Cookie",
                 REFRESH_COOKIE_NAME + "=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax; Secure");
+    }
+
+    /** 构造返回给前端的用户信息 map（login / refresh 共用） */
+    private Map<String, Object> buildUserMap(Account account) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("id", account.getId());
+        user.put("username", account.getUsername());
+        user.put("name", account.getName());
+        user.put("gender", account.getGender());
+        user.put("phone", account.getPhone());
+        user.put("roleLevel", account.getRoleLevel());
+        user.put("status", account.getStatus());
+        user.put("avatar", account.getAvatar());
+        return user;
     }
 }
