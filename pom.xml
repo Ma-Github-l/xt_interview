@@ -20,8 +20,15 @@
     <properties>
         <java.version>26</java.version>
         <flyway.version>10.20.1</flyway.version>
-        <lombok.version>1.18.42</lombok.version>
-        <bouncycastle.version>1.82</bouncycastle.version>
+        <lombok.version>1.18.48</lombok.version>
+        <bouncycastle.version>1.87</bouncycastle.version>
+        <!-- 以下 property 用于覆盖 Spring Boot BOM 管理版本，统一升到安全补丁线 -->
+        <tomcat.version>11.0.27</tomcat.version>
+        <jackson-2-bom.version>2.23.0</jackson-2-bom.version>
+        <snakeyaml.version>2.7</snakeyaml.version>
+        <logback.version>1.6.6</logback.version>
+        <aspectj.version>1.9.27</aspectj.version>
+        <jjwt.version>0.12.7</jjwt.version>
     </properties>
 
     <dependencies>
@@ -63,7 +70,7 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
-        <!-- Argon2id 密码编码的运行时依赖：Spring Security 的 Argon2PasswordEncoder 依赖 BouncyCastle -->
+        <!-- Argon2Id 密码编码的运行时依赖：Spring Security 的 Argon2PasswordEncoder 依赖 BouncyCastle -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
@@ -97,20 +104,20 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.12.5</version>
+            <version>${jjwt.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.12.6</version>
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.5</version>
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
